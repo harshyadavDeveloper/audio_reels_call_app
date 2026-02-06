@@ -1,3 +1,5 @@
+import 'package:audio_call_task/features/call/bloc/call_bloc.dart';
+import 'package:audio_call_task/features/call/bloc/call_event.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/reels_bloc.dart';
@@ -10,6 +12,15 @@ class ReelsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          print('🔴 FAB pressed - triggering IncomingCall');
+          context.read<CallBloc>().add(
+                IncomingCall("John Doe"),
+              );
+        },
+        child: const Icon(Icons.call),
+      ),
       body: BlocBuilder<ReelsBloc, ReelsState>(
         builder: (context, state) {
           if (state is ReelsLoading) {
