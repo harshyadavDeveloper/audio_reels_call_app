@@ -3,7 +3,7 @@ import 'package:audio_call_task/core/notifications/call_notification_service.dar
 import 'package:flutter/material.dart';
 
 void main() async{
-  await CallNotificationService.init();
   WidgetsFlutterBinding.ensureInitialized();
+  await CallNotificationService.init();
   runApp(const MyApp());
 }
