@@ -1,0 +1,112 @@
+import 'package:audio_call_task/features/call/bloc/call_bloc.dart';
+import 'package:audio_call_task/features/call/bloc/call_event.dart';
+import 'package:audio_call_task/features/call/bloc/call_state.dart';
+import 'package:audio_call_task/features/call/data/call_model.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+class CallPage extends StatelessWidget {
+  const CallPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    print('🎨 CallPage: Building...');
+    return BlocBuilder<CallBloc, CallState>(
+      builder: (context, state) {
+        print('🎨 CallPage: Current state = $state');
+        
+        if (state is! CallInProgress) {
+          print('🎨 CallPage: State is not CallInProgress, returning SizedBox.shrink()');
+          return const SizedBox.shrink();
+        }
+
+        final call = state.call;
+        print('🎨 CallPage: Call status = ${call.status}');
+
+        if (call.status == CallStatus.incoming) {
+          print('🎨 CallPage: Showing incoming call UI');
+          return _IncomingCallUI(call.callerName);
+        }
+
+        if (call.status == CallStatus.accepted) {
+          print('🎨 CallPage: Showing call connected UI');
+          return const Scaffold(
+            backgroundColor: Colors.black87,
+            body: Center(
+              child: Text(
+                'Call Connected',
+                style: TextStyle(fontSize: 24, color: Colors.white),
+              ),
+            ),
+          );
+        }
+
+        return const SizedBox.shrink();
+      },
+    );
+  }
+}
+
+class _IncomingCallUI extends StatelessWidget {
+  final String callerName;
+
+  const _IncomingCallUI(this.callerName);
+
+  @override
+  Widget build(BuildContext context) {
+    print('🎨 _IncomingCallUI: Building for caller: $callerName');
+    return Scaffold(
+      backgroundColor: Colors.black87,
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.person,
+              size: 100,
+              color: Colors.white,
+            ),
+            const SizedBox(height: 20),
+            Text(
+              callerName,
+              style: const TextStyle(
+                fontSize: 32,
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 10),
+            const Text(
+              'Incoming call...',
+              style: TextStyle(fontSize: 18, color: Colors.white70),
+            ),
+            const SizedBox(height: 60),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                IconButton(
+                  onPressed: () {
+                    print('❌ Decline button pressed');
+                    context.read<CallBloc>().add(DeclineCall());
+                  },
+                  icon: const Icon(Icons.call_end),
+                  iconSize: 50,
+                  color: Colors.red,
+                ),
+                IconButton(
+                  onPressed: () {
+                    print('✅ Accept button pressed');
+                    context.read<CallBloc>().add(AcceptCall());
+                  },
+                  icon: const Icon(Icons.call),
+                  iconSize: 50,
+                  color: Colors.green,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
