@@ -10,3 +10,8 @@ class ReelChanged extends ReelsEvent {
 
   ReelChanged(this.index, this.reel);
 }
+
+class TogglePlayPause extends ReelsEvent {}
+
+class HideOverlayIcon extends ReelsEvent {}
+

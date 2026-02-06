@@ -1,15 +1,21 @@
-import 'package:audio_call_task/features/reels/data/reels_audio.dart';
+import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../data/audio_player_service.dart';
+import '../data/reels_audio.dart';
 import 'reels_event.dart';
 import 'reels_state.dart';
 
 class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
   final AudioPlayerService audioService;
 
+  ReelsLoaded? _latestState;
+  Timer? _overlayTimer;
+
   ReelsBloc(this.audioService) : super(ReelsLoading()) {
     on<LoadReels>(_onLoadReels);
     on<ReelChanged>(_onReelChanged);
+    on<TogglePlayPause>(_onTogglePlayPause);
+    on<HideOverlayIcon>(_onHideOverlayIcon);
   }
 
   Future<void> _onLoadReels(
@@ -20,16 +26,27 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
       ReelAudio(
         id: '1',
         title: 'Sample 1',
-        audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
+        audioUrl:
+            'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
       ),
       ReelAudio(
         id: '2',
         title: 'Sample 2',
-        audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3',
+        audioUrl:
+            'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3',
       ),
     ];
 
-    emit(ReelsLoaded(reels: reels, currentIndex: 0));
+    _latestState = ReelsLoaded(
+      reels: reels,
+      currentIndex: 0,
+      isPlaying: true,
+      showOverlayIcon: false,
+    );
+
+    emit(_latestState!);
+
+    await audioService.init();
     await audioService.play(reels.first.audioUrl);
   }
 
@@ -37,17 +54,66 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
     ReelChanged event,
     Emitter<ReelsState> emit,
   ) async {
+    final currentState = _latestState!;
+
+    _latestState = currentState.copyWith(
+      currentIndex: event.index,
+      isPlaying: true,
+      showOverlayIcon: false,
+    );
+
+    emit(_latestState!);
+
     await audioService.stop();
     await audioService.play(event.reel.audioUrl);
+  }
 
-    emit(ReelsLoaded(
-      reels: (state as ReelsLoaded).reels,
-      currentIndex: event.index,
-    ));
+  Future<void> _onTogglePlayPause(
+  TogglePlayPause event,
+  Emitter<ReelsState> emit,
+) async {
+  final currentState = _latestState!;
+
+  _overlayTimer?.cancel();
+
+  // Use the state's isPlaying instead of audioService.isPlaying
+  if (currentState.isPlaying) {
+    // PAUSE
+    await audioService.pause();
+    _latestState = currentState.copyWith(
+      isPlaying: false,
+      showOverlayIcon: true,
+    );
+    emit(_latestState!);
+  } else {
+    // RESUME
+    await audioService.resume();
+    _latestState = currentState.copyWith(
+      isPlaying: true,
+      showOverlayIcon: true,
+    );
+    emit(_latestState!);
+  }
+
+  _overlayTimer = Timer(
+    const Duration(milliseconds: 1500),
+    () => add(HideOverlayIcon()),
+  );
+}
+
+  void _onHideOverlayIcon(
+    HideOverlayIcon event,
+    Emitter<ReelsState> emit,
+  ) {
+    if (_latestState == null) return;
+
+    _latestState = _latestState!.copyWith(showOverlayIcon: false);
+    emit(_latestState!);
   }
 
   @override
   Future<void> close() {
+    _overlayTimer?.cancel();
     audioService.dispose();
     return super.close();
   }
