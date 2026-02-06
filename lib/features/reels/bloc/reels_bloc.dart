@@ -1,12 +1,14 @@
 import 'dart:async';
-import 'package:audio_call_task/features/reels/data/reels_audio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../data/audio_player_service.dart';
+import '../data/reels_audio.dart';
 import 'reels_event.dart';
 import 'reels_state.dart';
 
 class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
   final AudioPlayerService audioService;
+
+  ReelsLoaded? _latestState;
   Timer? _overlayTimer;
 
   ReelsBloc(this.audioService) : super(ReelsLoading()) {
@@ -35,15 +37,15 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
       ),
     ];
 
-    // ✅ Emit UI state immediately
-    emit(ReelsLoaded(
+    _latestState = ReelsLoaded(
       reels: reels,
       currentIndex: 0,
       isPlaying: true,
       showOverlayIcon: false,
-    ));
+    );
 
-    // ✅ Audio work happens AFTER UI is ready
+    emit(_latestState!);
+
     await audioService.init();
     await audioService.play(reels.first.audioUrl);
   }
@@ -52,57 +54,61 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
     ReelChanged event,
     Emitter<ReelsState> emit,
   ) async {
-    final currentState = state as ReelsLoaded;
+    final currentState = _latestState!;
 
-    emit(currentState.copyWith(
+    _latestState = currentState.copyWith(
       currentIndex: event.index,
       isPlaying: true,
       showOverlayIcon: false,
-    ));
+    );
+
+    emit(_latestState!);
 
     await audioService.stop();
     await audioService.play(event.reel.audioUrl);
   }
 
   Future<void> _onTogglePlayPause(
-    TogglePlayPause event,
-    Emitter<ReelsState> emit,
-  ) async {
-    final currentState = state as ReelsLoaded;
+  TogglePlayPause event,
+  Emitter<ReelsState> emit,
+) async {
+  final currentState = _latestState!;
 
-    // Cancel any previous timer immediately
-    _overlayTimer?.cancel();
+  _overlayTimer?.cancel();
 
-    if (audioService.isPlaying) {
-      // 🔹 PAUSE
-      emit(currentState.copyWith(
-        isPlaying: false,
-        showOverlayIcon: true,
-      ));
-
-      await audioService.pause();
-    } else {
-      // 🔹 RESUME
-      emit(currentState.copyWith(
-        isPlaying: true,
-        showOverlayIcon: true,
-      ));
-
-      await audioService.resume();
-    }
-
-    // 🔹 Start fresh timer AFTER emit
-    _overlayTimer = Timer(
-      const Duration(milliseconds: 1500),
-      () => add(HideOverlayIcon()),
+  // Use the state's isPlaying instead of audioService.isPlaying
+  if (currentState.isPlaying) {
+    // PAUSE
+    await audioService.pause();
+    _latestState = currentState.copyWith(
+      isPlaying: false,
+      showOverlayIcon: true,
     );
+    emit(_latestState!);
+  } else {
+    // RESUME
+    await audioService.resume();
+    _latestState = currentState.copyWith(
+      isPlaying: true,
+      showOverlayIcon: true,
+    );
+    emit(_latestState!);
   }
+
+  _overlayTimer = Timer(
+    const Duration(milliseconds: 1500),
+    () => add(HideOverlayIcon()),
+  );
+}
 
   void _onHideOverlayIcon(
     HideOverlayIcon event,
     Emitter<ReelsState> emit,
   ) {
-    emit((state as ReelsLoaded).copyWith(showOverlayIcon: false));
+    if (_latestState == null) return;
+
+    _latestState = _latestState!.copyWith(showOverlayIcon: false);
+    emit(_latestState!);
   }
 
   @override
