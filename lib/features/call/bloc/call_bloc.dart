@@ -1,3 +1,4 @@
+import 'package:audio_call_task/core/notifications/call_notification_service.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 import '../data/call_model.dart';
@@ -16,13 +17,15 @@ class CallBloc extends Bloc<CallEvent, CallState> {
     IncomingCall event,
     Emitter<CallState> emit,
   ) {
-    print('📞 CallBloc: IncomingCall event received');
     final call = CallModel(
       callId: const Uuid().v4(),
       callerName: event.callerName,
       status: CallStatus.incoming,
     );
-    print('📞 CallBloc: Emitting CallInProgress state');
+
+    CallNotificationService.showIncomingCall(
+      callerName: event.callerName,
+    );
 
     emit(CallInProgress(call));
   }
