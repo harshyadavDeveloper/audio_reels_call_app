@@ -18,22 +18,38 @@ class ReelsPage extends StatelessWidget {
 
           final loaded = state as ReelsLoaded;
 
-          return PageView.builder(
-            scrollDirection: Axis.vertical,
-            itemCount: loaded.reels.length,
-            onPageChanged: (index) {
-              context.read<ReelsBloc>().add(
-                    ReelChanged(index, loaded.reels[index]),
-                  );
+          return GestureDetector(
+            onTap: () {
+              context.read<ReelsBloc>().add(TogglePlayPause());
             },
-            itemBuilder: (_, index) {
-              return Center(
-                child: Text(
-                  loaded.reels[index].title,
-                  style: const TextStyle(fontSize: 24),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                PageView.builder(
+                  scrollDirection: Axis.vertical,
+                  itemCount: loaded.reels.length,
+                  onPageChanged: (index) {
+                    context.read<ReelsBloc>().add(
+                          ReelChanged(index, loaded.reels[index]),
+                        );
+                  },
+                  itemBuilder: (_, index) {
+                    return Center(
+                      child: Text(
+                        loaded.reels[index].title,
+                        style: const TextStyle(fontSize: 24),
+                      ),
+                    );
+                  },
                 ),
-              );
-            },
+                if (loaded.showOverlayIcon)
+                  Icon(
+                    loaded.isPlaying ? Icons.play_arrow : Icons.pause,
+                    size: 80,
+                    color: Colors.black.withOpacity(0.85),
+                  ),
+              ],
+            ),
           );
         },
       ),

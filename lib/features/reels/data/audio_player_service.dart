@@ -3,6 +3,7 @@ import 'package:audio_session/audio_session.dart';
 
 class AudioPlayerService {
   final AudioPlayer _player = AudioPlayer();
+  bool get isPlaying => _player.playing;
 
   Future<void> init() async {
     final session = await AudioSession.instance;
@@ -21,6 +22,10 @@ class AudioPlayerService {
   Future<void> stop() async {
     await _player.stop();
   }
+  
+  Future<void> resume() async {
+  await _player.play();
+}
 
   void dispose() {
     _player.dispose();
