@@ -5,7 +5,6 @@ import 'package:audio_call_task/features/call/bloc/call_bloc.dart';
 import 'package:audio_call_task/features/call/bloc/call_event.dart';
 import 'package:audio_call_task/features/call/bloc/call_state.dart';
 import 'package:audio_call_task/features/call/data/agora_service.dart';
-import 'package:audio_call_task/features/call/data/call_model.dart';
 import 'package:audio_call_task/features/reels/bloc/reels_bloc.dart';
 import 'package:audio_call_task/features/reels/bloc/reels_event.dart';
 import 'package:audio_call_task/features/reels/data/audio_player_service.dart';
@@ -44,8 +43,7 @@ class _MyAppState extends State<MyApp> {
     });
 
     _callStateSub = _callBloc.stream.listen((callState) {
-      if (callState is CallInProgress &&
-          callState.call.status == CallStatus.incoming) {
+      if (callState is CallInProgress) {
         _reelsBloc.add(PauseForCall());
       }
 
