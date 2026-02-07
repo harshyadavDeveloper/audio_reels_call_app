@@ -10,12 +10,15 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
 
   ReelsLoaded? _latestState;
   Timer? _overlayTimer;
+  bool _wasPlayingBeforeCall = false;
 
   ReelsBloc(this.audioService) : super(ReelsLoading()) {
     on<LoadReels>(_onLoadReels);
     on<ReelChanged>(_onReelChanged);
     on<TogglePlayPause>(_onTogglePlayPause);
     on<HideOverlayIcon>(_onHideOverlayIcon);
+    on<PauseForCall>(_onPauseForCall);
+    on<ResumeAfterCall>(_onResumeAfterCall);
   }
 
   Future<void> _onLoadReels(
@@ -69,37 +72,37 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
   }
 
   Future<void> _onTogglePlayPause(
-  TogglePlayPause event,
-  Emitter<ReelsState> emit,
-) async {
-  final currentState = _latestState!;
+    TogglePlayPause event,
+    Emitter<ReelsState> emit,
+  ) async {
+    final currentState = _latestState!;
 
-  _overlayTimer?.cancel();
+    _overlayTimer?.cancel();
 
-  // Use the state's isPlaying instead of audioService.isPlaying
-  if (currentState.isPlaying) {
-    // PAUSE
-    await audioService.pause();
-    _latestState = currentState.copyWith(
-      isPlaying: false,
-      showOverlayIcon: true,
+    // Use the state's isPlaying instead of audioService.isPlaying
+    if (currentState.isPlaying) {
+      // PAUSE
+      await audioService.pause();
+      _latestState = currentState.copyWith(
+        isPlaying: false,
+        showOverlayIcon: true,
+      );
+      emit(_latestState!);
+    } else {
+      // RESUME
+      await audioService.resume();
+      _latestState = currentState.copyWith(
+        isPlaying: true,
+        showOverlayIcon: true,
+      );
+      emit(_latestState!);
+    }
+
+    _overlayTimer = Timer(
+      const Duration(milliseconds: 1500),
+      () => add(HideOverlayIcon()),
     );
-    emit(_latestState!);
-  } else {
-    // RESUME
-    await audioService.resume();
-    _latestState = currentState.copyWith(
-      isPlaying: true,
-      showOverlayIcon: true,
-    );
-    emit(_latestState!);
   }
-
-  _overlayTimer = Timer(
-    const Duration(milliseconds: 1500),
-    () => add(HideOverlayIcon()),
-  );
-}
 
   void _onHideOverlayIcon(
     HideOverlayIcon event,
@@ -109,6 +112,44 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
 
     _latestState = _latestState!.copyWith(showOverlayIcon: false);
     emit(_latestState!);
+  }
+
+  Future<void> _onPauseForCall(
+    PauseForCall event,
+    Emitter<ReelsState> emit,
+  ) async {
+    if (_latestState == null) return;
+
+    _wasPlayingBeforeCall = audioService.isPlaying;
+
+    if (_wasPlayingBeforeCall) {
+      await audioService.pause();
+
+      _latestState = _latestState!.copyWith(
+        isPlaying: false,
+        showOverlayIcon: false,
+      );
+      emit(_latestState!);
+    }
+  }
+
+  Future<void> _onResumeAfterCall(
+    ResumeAfterCall event,
+    Emitter<ReelsState> emit,
+  ) async {
+    if (_latestState == null) return;
+
+    if (_wasPlayingBeforeCall) {
+      await audioService.resume();
+
+      _latestState = _latestState!.copyWith(
+        isPlaying: true,
+        showOverlayIcon: false,
+      );
+      emit(_latestState!);
+    }
+
+    _wasPlayingBeforeCall = false;
   }
 
   @override

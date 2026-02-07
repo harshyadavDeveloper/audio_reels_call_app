@@ -30,15 +30,7 @@ class CallPage extends StatelessWidget {
 
         if (call.status == CallStatus.accepted) {
           print('🎨 CallPage: Showing call connected UI');
-          return const Scaffold(
-            backgroundColor: Colors.black87,
-            body: Center(
-              child: Text(
-                'Call Connected',
-                style: TextStyle(fontSize: 24, color: Colors.white),
-              ),
-            ),
-          );
+          return _ActiveCallUI();
         }
 
         return const SizedBox.shrink();
@@ -103,6 +95,37 @@ class _IncomingCallUI extends StatelessWidget {
                   color: Colors.green,
                 ),
               ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ActiveCallUI extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text(
+              'Call Connected',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 22,
+              ),
+            ),
+            const SizedBox(height: 40),
+            FloatingActionButton(
+              backgroundColor: Colors.red,
+              onPressed: () {
+                context.read<CallBloc>().add(EndCall());
+              },
+              child: const Icon(Icons.call_end),
             ),
           ],
         ),

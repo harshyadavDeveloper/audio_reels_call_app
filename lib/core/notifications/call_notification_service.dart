@@ -1,3 +1,4 @@
+import 'package:audio_call_task/core/notifications/call_action_stream.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class CallNotificationService {
@@ -64,10 +65,18 @@ class CallNotificationService {
     );
   }
 
-  static void _onNotificationAction(
-    NotificationResponse response,
-  ) {
-    // We will wire this to CallBloc in next step
-    // response.actionId -> ACCEPT_CALL / DECLINE_CALL
+ static void _onNotificationAction(
+  NotificationResponse response,
+) {
+  switch (response.actionId) {
+    case 'ACCEPT_CALL':
+      CallActionStream.emit(CallNotificationAction.accept);
+      break;
+
+    case 'DECLINE_CALL':
+      CallActionStream.emit(CallNotificationAction.decline);
+      break;
   }
+}
+
 }

@@ -14,6 +14,7 @@ class ReelsPage extends StatelessWidget {
     return Scaffold(
       floatingActionButton: FloatingActionButton(
         onPressed: () {
+          // await Future.delayed(const Duration(seconds: 5));
           print('🔴 FAB pressed - triggering IncomingCall');
           context.read<CallBloc>().add(
                 IncomingCall("John Doe"),
