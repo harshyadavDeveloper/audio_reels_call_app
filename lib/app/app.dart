@@ -4,6 +4,7 @@ import 'package:audio_call_task/core/notifications/call_action_stream.dart';
 import 'package:audio_call_task/features/call/bloc/call_bloc.dart';
 import 'package:audio_call_task/features/call/bloc/call_event.dart';
 import 'package:audio_call_task/features/call/bloc/call_state.dart';
+import 'package:audio_call_task/features/call/data/agora_service.dart';
 import 'package:audio_call_task/features/call/data/call_model.dart';
 import 'package:audio_call_task/features/reels/bloc/reels_bloc.dart';
 import 'package:audio_call_task/features/reels/bloc/reels_event.dart';
@@ -32,7 +33,7 @@ class _MyAppState extends State<MyApp> {
     super.initState();
 
     _reelsBloc = ReelsBloc(AudioPlayerService())..add(LoadReels());
-    _callBloc = CallBloc();
+    _callBloc = CallBloc(AgoraService());
 
     _callActionSub = CallActionStream.stream.listen((action) {
       if (action == CallNotificationAction.accept) {

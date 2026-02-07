@@ -10,6 +10,7 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
 
   ReelsLoaded? _latestState;
   Timer? _overlayTimer;
+
   bool _wasPlayingBeforeCall = false;
 
   ReelsBloc(this.audioService) : super(ReelsLoading()) {
@@ -20,6 +21,8 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
     on<PauseForCall>(_onPauseForCall);
     on<ResumeAfterCall>(_onResumeAfterCall);
   }
+
+  // -------------------- LOAD REELS --------------------
 
   Future<void> _onLoadReels(
     LoadReels event,
@@ -53,12 +56,13 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
     await audioService.play(reels.first.audioUrl);
   }
 
+  // -------------------- REEL CHANGE --------------------
+
   Future<void> _onReelChanged(
     ReelChanged event,
     Emitter<ReelsState> emit,
   ) async {
     final currentState = _latestState!;
-
     _latestState = currentState.copyWith(
       currentIndex: event.index,
       isPlaying: true,
@@ -71,15 +75,15 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
     await audioService.play(event.reel.audioUrl);
   }
 
+  // -------------------- TAP PLAY / PAUSE --------------------
+
   Future<void> _onTogglePlayPause(
     TogglePlayPause event,
     Emitter<ReelsState> emit,
   ) async {
     final currentState = _latestState!;
-
     _overlayTimer?.cancel();
 
-    // Use the state's isPlaying instead of audioService.isPlaying
     if (currentState.isPlaying) {
       // PAUSE
       await audioService.pause();
@@ -109,21 +113,27 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
     Emitter<ReelsState> emit,
   ) {
     if (_latestState == null) return;
-
     _latestState = _latestState!.copyWith(showOverlayIcon: false);
     emit(_latestState!);
   }
 
+  // -------------------- CALL INTERRUPTION --------------------
+
+  /// 🔴 VERY IMPORTANT
+  /// Pause reels AND fully release audio session
   Future<void> _onPauseForCall(
     PauseForCall event,
     Emitter<ReelsState> emit,
   ) async {
     if (_latestState == null) return;
 
-    _wasPlayingBeforeCall = audioService.isPlaying;
+    _wasPlayingBeforeCall = _latestState!.isPlaying;
 
     if (_wasPlayingBeforeCall) {
       await audioService.pause();
+
+      // 🔴 RELEASE AUDIO SESSION SO AGORA CAN USE MIC
+      await audioService.release();
 
       _latestState = _latestState!.copyWith(
         isPlaying: false,
@@ -133,6 +143,7 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
     }
   }
 
+  /// 🔴 Re-acquire audio session AFTER call ends
   Future<void> _onResumeAfterCall(
     ResumeAfterCall event,
     Emitter<ReelsState> emit,
@@ -140,6 +151,8 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
     if (_latestState == null) return;
 
     if (_wasPlayingBeforeCall) {
+      // 🔴 RE-INITIALIZE AUDIO SESSION
+      await audioService.init();
       await audioService.resume();
 
       _latestState = _latestState!.copyWith(
@@ -151,6 +164,8 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
 
     _wasPlayingBeforeCall = false;
   }
+
+  // -------------------- CLEANUP --------------------
 
   @override
   Future<void> close() {

@@ -3,11 +3,16 @@ import 'package:audio_session/audio_session.dart';
 
 class AudioPlayerService {
   final AudioPlayer _player = AudioPlayer();
+  AudioSession? _session;
+
   bool get isPlaying => _player.playing;
 
+  /// Initialize audio session for reels playback
   Future<void> init() async {
-    final session = await AudioSession.instance;
-    await session.configure(const AudioSessionConfiguration.music());
+    _session = await AudioSession.instance;
+    await _session!.configure(
+      const AudioSessionConfiguration.music(),
+    );
   }
 
   Future<void> play(String url) async {
@@ -19,15 +24,22 @@ class AudioPlayerService {
     await _player.pause();
   }
 
+  Future<void> resume() async {
+    await _player.play();
+  }
+
   Future<void> stop() async {
     await _player.stop();
   }
-  
-  Future<void> resume() async {
-  await _player.play();
-}
 
-  void dispose() {
-    _player.dispose();
+  /// 🔴 VERY IMPORTANT
+  /// Fully release audio focus so Agora can capture microphone
+  Future<void> release() async {
+    await _player.stop();
+    await _session?.setActive(false);
+  }
+
+  Future<void> dispose() async {
+    await _player.dispose();
   }
 }

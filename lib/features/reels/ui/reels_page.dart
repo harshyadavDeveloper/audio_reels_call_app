@@ -13,16 +13,19 @@ class ReelsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // await Future.delayed(const Duration(seconds: 5));
-          Logger.info('🔴 FAB pressed - triggering IncomingCall');
-          context.read<CallBloc>().add(
-                IncomingCall("John Doe"),
-              );
-        },
-        child: const Icon(Icons.call),
-      ),
+      floatingActionButton: // reels_page.dart
+         FloatingActionButton(
+  onPressed: () {
+    const channelId = 'test_agora_channel';
+    Logger.info('🔴 FAB pressed - channelId: $channelId');
+
+    context.read<CallBloc>().add(
+      IncomingCall("John Doe", channelId),
+    );
+  },
+  child: const Icon(Icons.call),
+),
+
       body: BlocBuilder<ReelsBloc, ReelsState>(
         builder: (context, state) {
           if (state is ReelsLoading) {
