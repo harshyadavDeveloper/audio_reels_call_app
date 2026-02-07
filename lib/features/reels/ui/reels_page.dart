@@ -1,3 +1,4 @@
+import 'package:audio_call_task/core/utils/logger.dart';
 import 'package:audio_call_task/features/call/bloc/call_bloc.dart';
 import 'package:audio_call_task/features/call/bloc/call_event.dart';
 import 'package:flutter/material.dart';
@@ -15,7 +16,7 @@ class ReelsPage extends StatelessWidget {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           // await Future.delayed(const Duration(seconds: 5));
-          print('🔴 FAB pressed - triggering IncomingCall');
+          Logger.info('🔴 FAB pressed - triggering IncomingCall');
           context.read<CallBloc>().add(
                 IncomingCall("John Doe"),
               );

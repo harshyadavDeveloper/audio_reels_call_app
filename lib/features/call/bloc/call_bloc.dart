@@ -1,4 +1,5 @@
 import 'package:audio_call_task/core/notifications/call_notification_service.dart';
+import 'package:audio_call_task/core/utils/logger.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 import '../data/call_model.dart';
@@ -34,7 +35,7 @@ class CallBloc extends Bloc<CallEvent, CallState> {
     AcceptCall event,
     Emitter<CallState> emit,
   ) {
-    print('📞 CallBloc: AcceptCall event received');
+    Logger.info('📞 CallBloc: AcceptCall event received');
     final current = state as CallInProgress;
 
     emit(CallInProgress(
@@ -46,7 +47,7 @@ class CallBloc extends Bloc<CallEvent, CallState> {
     DeclineCall event,
     Emitter<CallState> emit,
   ) {
-    print('📞 CallBloc: DeclineCall event received');
+    Logger.info('📞 CallBloc: DeclineCall event received');
     emit(CallIdle());
   }
 
@@ -54,7 +55,7 @@ class CallBloc extends Bloc<CallEvent, CallState> {
     EndCall event,
     Emitter<CallState> emit,
   ) {
-    print('📞 CallBloc: EndCall event received');
+    Logger.info('📞 CallBloc: EndCall event received');
     emit(CallIdle());
   }
 }
