@@ -1,4 +1,5 @@
 import 'package:agora_rtc_engine/agora_rtc_engine.dart';
+import 'package:audio_call_task/core/utils/logger.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class AgoraService {
@@ -26,16 +27,16 @@ class AgoraService {
     _engine.registerEventHandler(
       RtcEngineEventHandler(
         onJoinChannelSuccess: (connection, elapsed) {
-          print('✅ Agora joined channel: ${connection.channelId}');
+          Logger.success('✅ Agora joined channel: ${connection.channelId}');
         },
         onUserJoined: (connection, remoteUid, elapsed) {
-          print('👤 Remote user joined: $remoteUid');
+          Logger.info('👤 Remote user joined: $remoteUid');
         },
         onUserOffline: (connection, remoteUid, reason) {
-          print('👋 Remote user left: $remoteUid');
+          Logger.info('👋 Remote user left: $remoteUid');
         },
         onError: (err, msg) {
-          print('❌ Agora error: $err, $msg');
+          Logger.error('❌ Agora error: $err, $msg');
         },
       ),
     );

@@ -2,7 +2,6 @@ import 'package:audio_call_task/core/notifications/call_notification_service.dar
 import 'package:audio_call_task/core/utils/logger.dart';
 import 'package:audio_call_task/features/call/data/agora_service.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:uuid/uuid.dart';
 import '../data/call_model.dart';
 import 'call_event.dart';
 import 'call_state.dart';
