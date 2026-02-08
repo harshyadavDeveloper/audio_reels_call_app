@@ -1,16 +1,37 @@
-# audio_call_task
+# 🎧 Audio Reels & Calls (Flutter)
 
-A new Flutter project.
+A Flutter app that combines **reels-style audio playback** with **real-time voice calls**.
 
-## Getting Started
+## ✨ Features
+- Vertical audio reels (Shorts-style)
+- Tap to pause / resume with overlay
+- Auto-play on scroll
+- Incoming call UI (Accept / Decline)
+- Audio pauses during calls and resumes after
+- Background / foreground call notifications
 
-This project is a starting point for a Flutter application.
+## 🛠 Tech Stack
+- Flutter & Dart
+- flutter_bloc
+- just_audio + audio_session
+- Agora RTC Engine
+- flutter_local_notifications
 
-A few resources to get you started if this is your first Flutter project:
+## ▶️ Run Locally
+```bash
+flutter pub get
+flutter run
+```
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## 🔧 Setup Notes
+- Create an Agora project
+- Add App ID (and temp token for testing)
+- Real device recommended for background call testing
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## 📂 Icon & Branding
+- App icon generated via `flutter_launcher_icons`
+- App renamed using `rename_app`
+
+---
+
+Built for learning, experimentation, and real-world Flutter architecture 🚀
