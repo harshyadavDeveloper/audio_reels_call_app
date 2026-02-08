@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:audio_call_task/core/utils/logger.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../data/audio_player_service.dart';
 import '../data/reels_audio.dart';
@@ -71,56 +72,52 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
     await audioService.play(event.reel.audioUrl);
   }
 
-Future<void> _onTogglePlayPause(
-  TogglePlayPause event,
-  Emitter<ReelsState> emit,
-) async {
-  final current = state as ReelsLoaded;
-  final bool nextIsPlaying = !current.isPlaying;
+  Future<void> _onTogglePlayPause(
+    TogglePlayPause event,
+    Emitter<ReelsState> emit,
+  ) async {
+    final current = state as ReelsLoaded;
+    final bool nextIsPlaying = !current.isPlaying;
 
-  print('🟡 TAP → nextIsPlaying=$nextIsPlaying');
+    Logger.info('🟡 TAP → nextIsPlaying=$nextIsPlaying');
 
-  _overlayTimer?.cancel();
+    _overlayTimer?.cancel();
 
-  // 1️⃣ Emit UI immediately
-  emit(current.copyWith(
-    isPlaying: nextIsPlaying,
-    showOverlayIcon: true,
-  ));
+    // 1️⃣ Emit UI immediately
+    emit(current.copyWith(
+      isPlaying: nextIsPlaying,
+      showOverlayIcon: true,
+    ));
 
-  // 2️⃣ Schedule overlay hide FIRST
-  _overlayTimer = Timer(
-    const Duration(milliseconds: 1200),
-    () {
-      print('🔴 OVERLAY HIDDEN');
-      add(HideOverlayIcon());
-    },
-  );
+    // 2️⃣ Schedule overlay hide FIRST
+    _overlayTimer = Timer(
+      const Duration(milliseconds: 1200),
+      () {
+        Logger.success('🔴 OVERLAY HIDDEN');
+        add(HideOverlayIcon());
+      },
+    );
 
-  // 3️⃣ THEN do audio work
-  if (nextIsPlaying) {
-    print('🎵 AUDIO → resume() called');
-    await audioService.resume();
-  } else {
-    print('🎵 AUDIO → pause() called');
-    await audioService.pause();
+    // 3️⃣ THEN do audio work
+    if (nextIsPlaying) {
+      Logger.info('🎵 AUDIO → resume() called');
+      await audioService.resume();
+    } else {
+      Logger.info('🎵 AUDIO → pause() called');
+      await audioService.pause();
+    }
   }
-}
 
-
-
-
-
-void _onHideOverlayIcon(
-  HideOverlayIcon event,
-  Emitter<ReelsState> emit,
-) {
-  final current = state;
-  if (current is ReelsLoaded && current.showOverlayIcon) {
-    print('🔴 OVERLAY HIDDEN');
-    emit(current.copyWith(showOverlayIcon: false));
+  void _onHideOverlayIcon(
+    HideOverlayIcon event,
+    Emitter<ReelsState> emit,
+  ) {
+    final current = state;
+    if (current is ReelsLoaded && current.showOverlayIcon) {
+      Logger.info('🔴 OVERLAY HIDDEN');
+      emit(current.copyWith(showOverlayIcon: false));
+    }
   }
-}
 
   // -------------------- CALL INTERRUPTION --------------------
 
@@ -172,11 +169,10 @@ void _onHideOverlayIcon(
 
   // -------------------- CLEANUP --------------------
 
-@override
-Future<void> close() {
-  _overlayTimer?.cancel();
-  audioService.dispose();
-  return super.close();
-}
-
+  @override
+  Future<void> close() {
+    _overlayTimer?.cancel();
+    audioService.dispose();
+    return super.close();
+  }
 }

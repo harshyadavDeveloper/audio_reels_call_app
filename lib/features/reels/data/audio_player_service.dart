@@ -1,3 +1,4 @@
+import 'package:audio_call_task/core/utils/logger.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:audio_session/audio_session.dart';
 
@@ -20,18 +21,17 @@ class AudioPlayerService {
     await _player.play();
   }
 
-Future<void> pause() async {
-  print('🎵 AUDIO → pause() called');
-  await _player.pause();
-  print('🎵 AUDIO → paused, playing=${_player.playing}');
-}
+  Future<void> pause() async {
+    Logger.info('🎵 AUDIO → pause() called');
+    await _player.pause();
+    Logger.info('🎵 AUDIO → paused, playing=${_player.playing}');
+  }
 
-Future<void> resume() async {
-  print('🎵 AUDIO → resume() called');
-  await _player.play();
-  print('🎵 AUDIO → playing=${_player.playing}');
-}
-
+  Future<void> resume() async {
+    Logger.info('🎵 AUDIO → resume() called');
+    await _player.play();
+    Logger.info('🎵 AUDIO → playing=${_player.playing}');
+  }
 
   Future<void> stop() async {
     await _player.stop();

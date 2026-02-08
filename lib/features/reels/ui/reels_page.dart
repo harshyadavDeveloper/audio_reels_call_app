@@ -14,30 +14,28 @@ class ReelsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       floatingActionButton: // reels_page.dart
-         FloatingActionButton(
-  onPressed: () {
-    const channelId = 'test_agora_channel';
-    Logger.info('🔴 FAB pressed - channelId: $channelId');
+          FloatingActionButton(
+        onPressed: () {
+          const channelId = 'test_agora_channel';
+          Logger.info('🔴 FAB pressed - channelId: $channelId');
 
-    context.read<CallBloc>().add(
-      IncomingCall("John Doe", channelId),
-    );
-  },
-  child: const Icon(Icons.call),
-),
-
+          context.read<CallBloc>().add(
+                IncomingCall("John Doe", channelId),
+              );
+        },
+        child: const Icon(Icons.call),
+      ),
       body: BlocBuilder<ReelsBloc, ReelsState>(
         builder: (context, state) {
-          
           if (state is ReelsLoading) {
             return const Center(child: CircularProgressIndicator());
           }
 
           final loaded = state as ReelsLoaded;
-print('🧩 UI BUILD → isPlaying=${loaded.isPlaying}, overlay=${loaded.showOverlayIcon}');
+          Logger.info(
+              '🧩 UI BUILD → isPlaying=${loaded.isPlaying}, overlay=${loaded.showOverlayIcon}');
 
-
-           return GestureDetector(
+          return GestureDetector(
             onTap: () {
               context.read<ReelsBloc>().add(TogglePlayPause());
             },

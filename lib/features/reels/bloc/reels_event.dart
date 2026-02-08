@@ -18,5 +18,3 @@ class HideOverlayIcon extends ReelsEvent {}
 class PauseForCall extends ReelsEvent {}
 
 class ResumeAfterCall extends ReelsEvent {}
-
-
