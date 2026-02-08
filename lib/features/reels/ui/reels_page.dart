@@ -34,7 +34,7 @@ class ReelsPage extends StatelessWidget {
 
           final loaded = state as ReelsLoaded;
 
-          return GestureDetector(
+           return GestureDetector(
             onTap: () {
               context.read<ReelsBloc>().add(TogglePlayPause());
             },
