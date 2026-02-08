@@ -13,37 +13,40 @@ class ReelsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      floatingActionButton: // reels_page.dart
-         FloatingActionButton(
-  onPressed: () {
-    const channelId = 'test_agora_channel';
-    Logger.info('🔴 FAB pressed - channelId: $channelId');
+      backgroundColor: Colors.black,
 
-    context.read<CallBloc>().add(
-      IncomingCall("John Doe", channelId),
-    );
-  },
-  child: const Icon(Icons.call),
-),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.white,
+        onPressed: () {
+          const channelId = 'test_agora_channel';
+          Logger.info('🔴 FAB pressed - channelId: $channelId');
+
+          context.read<CallBloc>().add(
+                IncomingCall("John Doe", channelId),
+              );
+        },
+        child: const Icon(Icons.call, color: Colors.black),
+      ),
 
       body: BlocBuilder<ReelsBloc, ReelsState>(
         builder: (context, state) {
-          
           if (state is ReelsLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(
+              child: CircularProgressIndicator(color: Colors.white),
+            );
           }
 
           final loaded = state as ReelsLoaded;
-print('🧩 UI BUILD → isPlaying=${loaded.isPlaying}, overlay=${loaded.showOverlayIcon}');
 
-
-           return GestureDetector(
+          return GestureDetector(
+            behavior: HitTestBehavior.opaque,
             onTap: () {
               context.read<ReelsBloc>().add(TogglePlayPause());
             },
             child: Stack(
               alignment: Alignment.center,
               children: [
+                /// 🔹 REELS CONTENT
                 PageView.builder(
                   scrollDirection: Axis.vertical,
                   itemCount: loaded.reels.length,
@@ -56,17 +59,51 @@ print('🧩 UI BUILD → isPlaying=${loaded.isPlaying}, overlay=${loaded.showOve
                     return Center(
                       child: Text(
                         loaded.reels[index].title,
-                        style: const TextStyle(fontSize: 24),
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 26,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.6,
+                        ),
                       ),
                     );
                   },
                 ),
-                if (loaded.showOverlayIcon)
-                  Icon(
-                    loaded.isPlaying ? Icons.play_arrow : Icons.pause,
-                    size: 80,
-                    color: Colors.black.withOpacity(0.85),
-                  ),
+
+                /// 🔹 PLAY / PAUSE OVERLAY (YouTube Shorts style)
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 220),
+                  switchInCurve: Curves.easeOut,
+                  switchOutCurve: Curves.easeIn,
+                  transitionBuilder: (child, animation) {
+                    return ScaleTransition(
+                      scale: Tween<double>(begin: 0.85, end: 1.0)
+                          .animate(animation),
+                      child: FadeTransition(
+                        opacity: animation,
+                        child: child,
+                      ),
+                    );
+                  },
+                  child: loaded.showOverlayIcon
+                      ? Container(
+                          key: ValueKey(loaded.isPlaying),
+                          padding: const EdgeInsets.all(18),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.45),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            loaded.isPlaying
+                                ? Icons.pause
+                                : Icons.play_arrow,
+                            size: 72,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const SizedBox.shrink(),
+                ),
               ],
             ),
           );
