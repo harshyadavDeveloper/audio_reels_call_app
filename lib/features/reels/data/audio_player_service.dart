@@ -37,8 +37,6 @@ class AudioPlayerService {
     await _player.stop();
   }
 
-  /// 🔴 VERY IMPORTANT
-  /// Fully release audio focus so Agora can capture microphone
   Future<void> release() async {
     await _player.stop();
     await _session?.setActive(false);

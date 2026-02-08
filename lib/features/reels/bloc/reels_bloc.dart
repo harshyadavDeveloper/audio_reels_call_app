@@ -43,7 +43,6 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
       ),
     ];
 
-    // ✅ Emit UI state immediately
     emit(ReelsLoaded(
       reels: reels,
       currentIndex: 0,
@@ -51,7 +50,6 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
       showOverlayIcon: false,
     ));
 
-    // ✅ Audio work happens AFTER UI is ready
     await audioService.init();
     await audioService.play(reels.first.audioUrl);
   }
@@ -83,13 +81,11 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
 
     _overlayTimer?.cancel();
 
-    // 1️⃣ Emit UI immediately
     emit(current.copyWith(
       isPlaying: nextIsPlaying,
       showOverlayIcon: true,
     ));
 
-    // 2️⃣ Schedule overlay hide FIRST
     _overlayTimer = Timer(
       const Duration(milliseconds: 1200),
       () {
@@ -98,7 +94,6 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
       },
     );
 
-    // 3️⃣ THEN do audio work
     if (nextIsPlaying) {
       Logger.info('🎵 AUDIO → resume() called');
       await audioService.resume();
@@ -121,8 +116,6 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
 
   // -------------------- CALL INTERRUPTION --------------------
 
-  /// 🔴 VERY IMPORTANT
-  /// Pause reels AND fully release audio session
   Future<void> _onPauseForCall(
     PauseForCall event,
     Emitter<ReelsState> emit,
@@ -134,7 +127,6 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
     if (_wasPlayingBeforeCall) {
       await audioService.pause();
 
-      // 🔴 RELEASE AUDIO SESSION SO AGORA CAN USE MIC
       await audioService.release();
 
       _latestState = _latestState!.copyWith(
@@ -145,7 +137,6 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
     }
   }
 
-  /// 🔴 Re-acquire audio session AFTER call ends
   Future<void> _onResumeAfterCall(
     ResumeAfterCall event,
     Emitter<ReelsState> emit,
@@ -153,7 +144,6 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
     if (_latestState == null) return;
 
     if (_wasPlayingBeforeCall) {
-      // 🔴 RE-INITIALIZE AUDIO SESSION
       await audioService.init();
       await audioService.resume();
 

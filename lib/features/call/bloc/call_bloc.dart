@@ -26,7 +26,7 @@ class CallBloc extends Bloc<CallEvent, CallState> {
     Emitter<CallState> emit,
   ) {
     final call = CallModel(
-      callId: event.channelId, // ✅ Use provided channel ID
+      callId: event.channelId, 
       callerName: event.callerName,
       status: CallStatus.incoming,
     );
