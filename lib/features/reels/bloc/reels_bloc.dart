@@ -11,13 +11,18 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
   ReelsLoaded? _latestState;
   Timer? _overlayTimer;
 
+  bool _wasPlayingBeforeCall = false;
+
   ReelsBloc(this.audioService) : super(ReelsLoading()) {
     on<LoadReels>(_onLoadReels);
     on<ReelChanged>(_onReelChanged);
     on<TogglePlayPause>(_onTogglePlayPause);
     on<HideOverlayIcon>(_onHideOverlayIcon);
+    on<PauseForCall>(_onPauseForCall);
+    on<ResumeAfterCall>(_onResumeAfterCall);
   }
 
+  // -------------------- LOAD REELS --------------------
   Future<void> _onLoadReels(
     LoadReels event,
     Emitter<ReelsState> emit,
@@ -37,15 +42,15 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
       ),
     ];
 
-    _latestState = ReelsLoaded(
+    // ✅ Emit UI state immediately
+    emit(ReelsLoaded(
       reels: reels,
       currentIndex: 0,
       isPlaying: true,
       showOverlayIcon: false,
-    );
+    ));
 
-    emit(_latestState!);
-
+    // ✅ Audio work happens AFTER UI is ready
     await audioService.init();
     await audioService.play(reels.first.audioUrl);
   }
@@ -54,67 +59,124 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
     ReelChanged event,
     Emitter<ReelsState> emit,
   ) async {
-    final currentState = _latestState!;
+    final currentState = state as ReelsLoaded;
 
-    _latestState = currentState.copyWith(
+    emit(currentState.copyWith(
       currentIndex: event.index,
       isPlaying: true,
       showOverlayIcon: false,
-    );
-
-    emit(_latestState!);
+    ));
 
     await audioService.stop();
     await audioService.play(event.reel.audioUrl);
   }
 
-  Future<void> _onTogglePlayPause(
+Future<void> _onTogglePlayPause(
   TogglePlayPause event,
   Emitter<ReelsState> emit,
 ) async {
-  final currentState = _latestState!;
+  final current = state as ReelsLoaded;
+  final bool nextIsPlaying = !current.isPlaying;
+
+  print('🟡 TAP → nextIsPlaying=$nextIsPlaying');
 
   _overlayTimer?.cancel();
 
-  // Use the state's isPlaying instead of audioService.isPlaying
-  if (currentState.isPlaying) {
-    // PAUSE
-    await audioService.pause();
-    _latestState = currentState.copyWith(
-      isPlaying: false,
-      showOverlayIcon: true,
-    );
-    emit(_latestState!);
-  } else {
-    // RESUME
-    await audioService.resume();
-    _latestState = currentState.copyWith(
-      isPlaying: true,
-      showOverlayIcon: true,
-    );
-    emit(_latestState!);
-  }
+  // 1️⃣ Emit UI immediately
+  emit(current.copyWith(
+    isPlaying: nextIsPlaying,
+    showOverlayIcon: true,
+  ));
 
+  // 2️⃣ Schedule overlay hide FIRST
   _overlayTimer = Timer(
-    const Duration(milliseconds: 1500),
-    () => add(HideOverlayIcon()),
+    const Duration(milliseconds: 1200),
+    () {
+      print('🔴 OVERLAY HIDDEN');
+      add(HideOverlayIcon());
+    },
   );
+
+  // 3️⃣ THEN do audio work
+  if (nextIsPlaying) {
+    print('🎵 AUDIO → resume() called');
+    await audioService.resume();
+  } else {
+    print('🎵 AUDIO → pause() called');
+    await audioService.pause();
+  }
 }
 
-  void _onHideOverlayIcon(
-    HideOverlayIcon event,
+
+
+
+
+void _onHideOverlayIcon(
+  HideOverlayIcon event,
+  Emitter<ReelsState> emit,
+) {
+  final current = state;
+  if (current is ReelsLoaded && current.showOverlayIcon) {
+    print('🔴 OVERLAY HIDDEN');
+    emit(current.copyWith(showOverlayIcon: false));
+  }
+}
+
+  // -------------------- CALL INTERRUPTION --------------------
+
+  /// 🔴 VERY IMPORTANT
+  /// Pause reels AND fully release audio session
+  Future<void> _onPauseForCall(
+    PauseForCall event,
     Emitter<ReelsState> emit,
-  ) {
+  ) async {
     if (_latestState == null) return;
 
-    _latestState = _latestState!.copyWith(showOverlayIcon: false);
-    emit(_latestState!);
+    _wasPlayingBeforeCall = _latestState!.isPlaying;
+
+    if (_wasPlayingBeforeCall) {
+      await audioService.pause();
+
+      // 🔴 RELEASE AUDIO SESSION SO AGORA CAN USE MIC
+      await audioService.release();
+
+      _latestState = _latestState!.copyWith(
+        isPlaying: false,
+        showOverlayIcon: false,
+      );
+      emit(_latestState!);
+    }
   }
 
-  @override
-  Future<void> close() {
-    _overlayTimer?.cancel();
-    audioService.dispose();
-    return super.close();
+  /// 🔴 Re-acquire audio session AFTER call ends
+  Future<void> _onResumeAfterCall(
+    ResumeAfterCall event,
+    Emitter<ReelsState> emit,
+  ) async {
+    if (_latestState == null) return;
+
+    if (_wasPlayingBeforeCall) {
+      // 🔴 RE-INITIALIZE AUDIO SESSION
+      await audioService.init();
+      await audioService.resume();
+
+      _latestState = _latestState!.copyWith(
+        isPlaying: true,
+        showOverlayIcon: false,
+      );
+      emit(_latestState!);
+    }
+
+    _wasPlayingBeforeCall = false;
   }
+
+  // -------------------- CLEANUP --------------------
+
+@override
+Future<void> close() {
+  _overlayTimer?.cancel();
+  audioService.dispose();
+  return super.close();
+}
+
 }

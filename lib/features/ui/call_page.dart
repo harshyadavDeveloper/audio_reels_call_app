@@ -1,3 +1,4 @@
+import 'package:audio_call_task/core/utils/logger.dart';
 import 'package:audio_call_task/features/call/bloc/call_bloc.dart';
 import 'package:audio_call_task/features/call/bloc/call_event.dart';
 import 'package:audio_call_task/features/call/bloc/call_state.dart';
@@ -10,35 +11,28 @@ class CallPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print('🎨 CallPage: Building...');
+    Logger.info('🎨 CallPage: Building...');
     return BlocBuilder<CallBloc, CallState>(
       builder: (context, state) {
-        print('🎨 CallPage: Current state = $state');
-        
+        Logger.info('🎨 CallPage: Current state = $state');
+
         if (state is! CallInProgress) {
-          print('🎨 CallPage: State is not CallInProgress, returning SizedBox.shrink()');
+          Logger.info(
+              '🎨 CallPage: State is not CallInProgress, returning SizedBox.shrink()');
           return const SizedBox.shrink();
         }
 
         final call = state.call;
-        print('🎨 CallPage: Call status = ${call.status}');
+        Logger.info('🎨 CallPage: Call status = ${call.status}');
 
         if (call.status == CallStatus.incoming) {
-          print('🎨 CallPage: Showing incoming call UI');
+          Logger.info('🎨 CallPage: Showing incoming call UI');
           return _IncomingCallUI(call.callerName);
         }
 
         if (call.status == CallStatus.accepted) {
-          print('🎨 CallPage: Showing call connected UI');
-          return const Scaffold(
-            backgroundColor: Colors.black87,
-            body: Center(
-              child: Text(
-                'Call Connected',
-                style: TextStyle(fontSize: 24, color: Colors.white),
-              ),
-            ),
-          );
+          Logger.info('🎨 CallPage: Showing call connected UI');
+          return _ActiveCallUI();
         }
 
         return const SizedBox.shrink();
@@ -54,7 +48,7 @@ class _IncomingCallUI extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print('🎨 _IncomingCallUI: Building for caller: $callerName');
+    Logger.info('🎨 _IncomingCallUI: Building for caller: $callerName');
     return Scaffold(
       backgroundColor: Colors.black87,
       body: Center(
@@ -86,7 +80,7 @@ class _IncomingCallUI extends StatelessWidget {
               children: [
                 IconButton(
                   onPressed: () {
-                    print('❌ Decline button pressed');
+                    Logger.error('❌ Decline button pressed');
                     context.read<CallBloc>().add(DeclineCall());
                   },
                   icon: const Icon(Icons.call_end),
@@ -95,7 +89,7 @@ class _IncomingCallUI extends StatelessWidget {
                 ),
                 IconButton(
                   onPressed: () {
-                    print('✅ Accept button pressed');
+                    Logger.success('✅ Accept button pressed');
                     context.read<CallBloc>().add(AcceptCall());
                   },
                   icon: const Icon(Icons.call),
@@ -103,6 +97,37 @@ class _IncomingCallUI extends StatelessWidget {
                   color: Colors.green,
                 ),
               ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ActiveCallUI extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black87,
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text(
+              'Call Connected',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 22,
+              ),
+            ),
+            const SizedBox(height: 40),
+            FloatingActionButton(
+              backgroundColor: Colors.red,
+              onPressed: () {
+                context.read<CallBloc>().add(EndCall());
+              },
+              child: const Icon(Icons.call_end),
             ),
           ],
         ),

@@ -1,3 +1,4 @@
+import 'package:audio_call_task/core/utils/logger.dart';
 import 'package:audio_call_task/features/call/bloc/call_bloc.dart';
 import 'package:audio_call_task/features/call/bloc/call_event.dart';
 import 'package:flutter/material.dart';
@@ -12,24 +13,31 @@ class ReelsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          print('🔴 FAB pressed - triggering IncomingCall');
-          context.read<CallBloc>().add(
-                IncomingCall("John Doe"),
-              );
-        },
-        child: const Icon(Icons.call),
-      ),
+      floatingActionButton: // reels_page.dart
+         FloatingActionButton(
+  onPressed: () {
+    const channelId = 'test_agora_channel';
+    Logger.info('🔴 FAB pressed - channelId: $channelId');
+
+    context.read<CallBloc>().add(
+      IncomingCall("John Doe", channelId),
+    );
+  },
+  child: const Icon(Icons.call),
+),
+
       body: BlocBuilder<ReelsBloc, ReelsState>(
         builder: (context, state) {
+          
           if (state is ReelsLoading) {
             return const Center(child: CircularProgressIndicator());
           }
 
           final loaded = state as ReelsLoaded;
+print('🧩 UI BUILD → isPlaying=${loaded.isPlaying}, overlay=${loaded.showOverlayIcon}');
 
-          return GestureDetector(
+
+           return GestureDetector(
             onTap: () {
               context.read<ReelsBloc>().add(TogglePlayPause());
             },
