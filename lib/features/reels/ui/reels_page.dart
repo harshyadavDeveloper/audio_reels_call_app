@@ -28,11 +28,14 @@ class ReelsPage extends StatelessWidget {
 
       body: BlocBuilder<ReelsBloc, ReelsState>(
         builder: (context, state) {
+          
           if (state is ReelsLoading) {
             return const Center(child: CircularProgressIndicator());
           }
 
           final loaded = state as ReelsLoaded;
+print('🧩 UI BUILD → isPlaying=${loaded.isPlaying}, overlay=${loaded.showOverlayIcon}');
+
 
            return GestureDetector(
             onTap: () {

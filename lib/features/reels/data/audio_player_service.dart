@@ -20,13 +20,18 @@ class AudioPlayerService {
     await _player.play();
   }
 
-  Future<void> pause() async {
-    await _player.pause();
-  }
+Future<void> pause() async {
+  print('🎵 AUDIO → pause() called');
+  await _player.pause();
+  print('🎵 AUDIO → paused, playing=${_player.playing}');
+}
 
-  Future<void> resume() async {
-    await _player.play();
-  }
+Future<void> resume() async {
+  print('🎵 AUDIO → resume() called');
+  await _player.play();
+  print('🎵 AUDIO → playing=${_player.playing}');
+}
+
 
   Future<void> stop() async {
     await _player.stop();

@@ -71,46 +71,56 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
     await audioService.play(event.reel.audioUrl);
   }
 
-  Future<void> _onTogglePlayPause(
-    TogglePlayPause event,
-    Emitter<ReelsState> emit,
-  ) async {
-    final currentState = state as ReelsLoaded;
+Future<void> _onTogglePlayPause(
+  TogglePlayPause event,
+  Emitter<ReelsState> emit,
+) async {
+  final current = state as ReelsLoaded;
+  final bool nextIsPlaying = !current.isPlaying;
 
-    // Cancel any previous timer immediately
-    _overlayTimer?.cancel();
+  print('🟡 TAP → nextIsPlaying=$nextIsPlaying');
 
-    if (audioService.isPlaying) {
-      // 🔹 PAUSE
-      emit(currentState.copyWith(
-        isPlaying: false,
-        showOverlayIcon: true,
-      ));
+  _overlayTimer?.cancel();
 
-      await audioService.pause();
-    } else {
-      // 🔹 RESUME
-      emit(currentState.copyWith(
-        isPlaying: true,
-        showOverlayIcon: true,
-      ));
+  // 1️⃣ Emit UI immediately
+  emit(current.copyWith(
+    isPlaying: nextIsPlaying,
+    showOverlayIcon: true,
+  ));
 
-      await audioService.resume();
-    }
+  // 2️⃣ Schedule overlay hide FIRST
+  _overlayTimer = Timer(
+    const Duration(milliseconds: 1200),
+    () {
+      print('🔴 OVERLAY HIDDEN');
+      add(HideOverlayIcon());
+    },
+  );
 
-    // 🔹 Start fresh timer AFTER emit
-    _overlayTimer = Timer(
-      const Duration(milliseconds: 1500),
-      () => add(HideOverlayIcon()),
-    );
+  // 3️⃣ THEN do audio work
+  if (nextIsPlaying) {
+    print('🎵 AUDIO → resume() called');
+    await audioService.resume();
+  } else {
+    print('🎵 AUDIO → pause() called');
+    await audioService.pause();
   }
+}
 
-  void _onHideOverlayIcon(
-    HideOverlayIcon event,
-    Emitter<ReelsState> emit,
-  ) {
-    emit((state as ReelsLoaded).copyWith(showOverlayIcon: false));
+
+
+
+
+void _onHideOverlayIcon(
+  HideOverlayIcon event,
+  Emitter<ReelsState> emit,
+) {
+  final current = state;
+  if (current is ReelsLoaded && current.showOverlayIcon) {
+    print('🔴 OVERLAY HIDDEN');
+    emit(current.copyWith(showOverlayIcon: false));
   }
+}
 
   // -------------------- CALL INTERRUPTION --------------------
 
@@ -162,10 +172,11 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
 
   // -------------------- CLEANUP --------------------
 
-  @override
-  Future<void> close() {
-    _overlayTimer?.cancel();
-    audioService.dispose();
-    return super.close();
-  }
+@override
+Future<void> close() {
+  _overlayTimer?.cancel();
+  audioService.dispose();
+  return super.close();
+}
+
 }
