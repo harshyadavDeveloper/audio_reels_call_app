@@ -3,33 +3,28 @@ name: Flutter Android Release CI
 on:
   push:
     tags:
-      - 'v*'   # triggers on tags like v1.0.0, v1.2.3, etc.
+      - "v*"
 
 jobs:
   build-and-release:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout repo
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Setup Flutter
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.19.0'
+          flutter-version: "3.19.0"
 
-      # Install dependencies
       - name: Install dependencies
         run: flutter pub get
 
-      # Build release APKs split by ABI with build number from github run number
       - name: Build release APKs
         run: |
           flutter build apk --release --split-per-abi --build-number $GITHUB_RUN_NUMBER
 
-      # Create GitHub release and upload APKs using ncipollo/release-action
       - name: Push to Releases
         uses: ncipollo/release-action@v1
         with:
