@@ -1,4 +1,4 @@
-import '../../reels/data/reel_audio_model.dart';
+import '../data/models/reel_audio_model.dart';
 abstract class ReelsState {}
 
 class ReelsLoading extends ReelsState {}
