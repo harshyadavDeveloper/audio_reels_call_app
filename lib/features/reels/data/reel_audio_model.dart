@@ -1,0 +1,1 @@
+// to store the structure of the audio data received from the api/ convert json to model and vice versa
