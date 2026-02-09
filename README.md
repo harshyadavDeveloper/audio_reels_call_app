@@ -12,26 +12,31 @@ A Flutter app that combines **reels-style audio playback** with **real-time voic
 
 ## 🛠 Tech Stack
 - Flutter & Dart
-- flutter_bloc
-- just_audio + audio_session
-- Agora RTC Engine
-- flutter_local_notifications
+- flutter_bloc (state management)
+- just_audio + audio_session (audio playback)
+- Agora RTC Engine (real-time calls)
+- flutter_local_notifications (call notifications)
+
+## ⚙️ SDK & Environment
+
+| Tool | Version |
+|-----|--------|
+| **Flutter SDK** | `>= 3.2.0 < 4.0.0` |
+| **Dart SDK** | Bundled with Flutter 3.2+ |
+| **Java (Android)** | Java 17 |
+| **Android Gradle Plugin** | Compatible with Flutter 3.x |
+
+### Why these versions?
+- **Flutter 3.2+**  
+  Used for stable Material 3 support, improved performance, and compatibility with modern plugins like Agora and just_audio.
+- **Dart 3.x**  
+  Enables sound null safety and better compile-time checks, reducing runtime crashes.
+- **Java 17**  
+  Required by newer Android Gradle Plugin versions and recommended by Flutter for Android builds.
+- **Real device recommended**  
+  Background audio and call behavior cannot be reliably tested on emulators.
 
 ## ▶️ Run Locally
 ```bash
 flutter pub get
 flutter run
-```
-
-## 🔧 Setup Notes
-- Create an Agora project
-- Add App ID (and temp token for testing)
-- Real device recommended for background call testing
-
-## 📂 Icon & Branding
-- App icon generated via `flutter_launcher_icons`
-- App renamed using `rename_app`
-
----
-
-Built for learning, experimentation, and real-world Flutter architecture 🚀
