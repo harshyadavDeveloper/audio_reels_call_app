@@ -4,7 +4,7 @@ import 'package:audio_call_task/features/reels/data/models/reels_feed_result.dar
 import 'package:dio/dio.dart';
 import 'package:audio_call_task/core/utils/logger.dart';
 import '../../../core/network/api_client.dart';
-import '../../reels/data/reel_audio_model.dart';
+import 'models/reel_audio_model.dart';
 
 class ReelsApiService {
   final ApiClient _apiClient;

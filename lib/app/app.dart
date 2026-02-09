@@ -9,7 +9,7 @@ import 'package:audio_call_task/features/call/data/agora_service.dart';
 import 'package:audio_call_task/features/call/ui/call_page.dart';
 import 'package:audio_call_task/features/reels/bloc/reels_bloc.dart';
 import 'package:audio_call_task/features/reels/bloc/reels_event.dart';
-import 'package:audio_call_task/features/reels/data/audio_player_service.dart';
+import 'package:audio_call_task/features/reels/services/audio_player_service.dart';
 import 'package:audio_call_task/features/reels/data/reels_api_service.dart';
 import 'package:audio_call_task/features/reels/ui/reels_page.dart';
 import 'package:flutter/material.dart';

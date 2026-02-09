@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:audio_call_task/core/utils/logger.dart';
 import 'package:audio_call_task/features/reels/data/reels_api_service.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../data/audio_player_service.dart';
+import '../services/audio_player_service.dart';
 import 'reels_event.dart';
 import 'reels_state.dart';
 
