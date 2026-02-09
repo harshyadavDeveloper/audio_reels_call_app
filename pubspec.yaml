@@ -24,6 +24,8 @@ dependencies:
 
   # App rename utility
   rename_app: ^1.6.5
+  dio: ^5.4.0
+
 
 dev_dependencies:
   flutter_test:
