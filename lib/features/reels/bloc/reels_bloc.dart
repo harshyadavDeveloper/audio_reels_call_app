@@ -1,20 +1,21 @@
 import 'dart:async';
 import 'package:audio_call_task/core/utils/logger.dart';
+import 'package:audio_call_task/features/reels/data/reels_api_service.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../data/audio_player_service.dart';
-import '../data/reels_audio.dart';
 import 'reels_event.dart';
 import 'reels_state.dart';
 
 class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
   final AudioPlayerService audioService;
+  final ReelsApiService reelsApiService;
 
   ReelsLoaded? _latestState;
   Timer? _overlayTimer;
 
   bool _wasPlayingBeforeCall = false;
 
-  ReelsBloc(this.audioService) : super(ReelsLoading()) {
+  ReelsBloc(this.audioService, this.reelsApiService) : super(ReelsLoading()) {
     on<LoadReels>(_onLoadReels);
     on<ReelChanged>(_onReelChanged);
     on<TogglePlayPause>(_onTogglePlayPause);
@@ -28,43 +29,50 @@ class ReelsBloc extends Bloc<ReelsEvent, ReelsState> {
     LoadReels event,
     Emitter<ReelsState> emit,
   ) async {
-    final reels = [
-      ReelAudio(
-        id: '1',
-        title: 'Sample 1',
-        audioUrl:
-            'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
-      ),
-      ReelAudio(
-        id: '2',
-        title: 'Sample 2',
-        audioUrl:
-            'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3',
-      ),
-    ];
+    emit(ReelsLoading());
 
-    emit(ReelsLoaded(
-      reels: reels,
-      currentIndex: 0,
-      isPlaying: true,
-      showOverlayIcon: false,
-    ));
+    try {
+      final result = await reelsApiService.fetchReels(limit: 10);
+      final reels = result.reels;
 
-    await audioService.init();
-    await audioService.play(reels.first.audioUrl);
+      if (reels.isEmpty) {
+        throw Exception('No reels received from API');
+      }
+
+      // UI FIRST
+      emit(
+        ReelsLoaded(
+          reels: reels,
+          currentIndex: 0,
+          isPlaying: true,
+          showOverlayIcon: false,
+        ),
+      );
+
+      _latestState = state as ReelsLoaded;
+
+      // AUDIO AFTER UI
+      await audioService.init();
+      await audioService.play(reels.first.audioUrl);
+    } catch (e, stack) {
+      emit(ReelsError('Failed to load reels $e, $stack'));
+      rethrow;
+    }
   }
 
   Future<void> _onReelChanged(
     ReelChanged event,
     Emitter<ReelsState> emit,
   ) async {
-    final currentState = state as ReelsLoaded;
+    final current = state as ReelsLoaded;
 
-    emit(currentState.copyWith(
-      currentIndex: event.index,
-      isPlaying: true,
-      showOverlayIcon: false,
-    ));
+    emit(
+      current.copyWith(
+        currentIndex: event.index,
+        isPlaying: true,
+        showOverlayIcon: false,
+      ),
+    );
 
     await audioService.stop();
     await audioService.play(event.reel.audioUrl);

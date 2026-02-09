@@ -1,15 +1,17 @@
 import 'dart:async';
 
+import 'package:audio_call_task/core/network/api_client.dart';
 import 'package:audio_call_task/core/notifications/call_action_stream.dart';
 import 'package:audio_call_task/features/call/bloc/call_bloc.dart';
 import 'package:audio_call_task/features/call/bloc/call_event.dart';
 import 'package:audio_call_task/features/call/bloc/call_state.dart';
 import 'package:audio_call_task/features/call/data/agora_service.dart';
+import 'package:audio_call_task/features/call/ui/call_page.dart';
 import 'package:audio_call_task/features/reels/bloc/reels_bloc.dart';
 import 'package:audio_call_task/features/reels/bloc/reels_event.dart';
 import 'package:audio_call_task/features/reels/data/audio_player_service.dart';
+import 'package:audio_call_task/features/reels/data/reels_api_service.dart';
 import 'package:audio_call_task/features/reels/ui/reels_page.dart';
-import 'package:audio_call_task/features/ui/call_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -26,12 +28,14 @@ class _MyAppState extends State<MyApp> {
 
   late final StreamSubscription _callActionSub;
   late final StreamSubscription _callStateSub;
+  final apiClient = ApiClient();
+
 
   @override
   void initState() {
     super.initState();
 
-    _reelsBloc = ReelsBloc(AudioPlayerService())..add(LoadReels());
+    _reelsBloc = ReelsBloc(AudioPlayerService(), ReelsApiService(apiClient))..add(LoadReels());
     _callBloc = CallBloc(AgoraService());
 
     _callActionSub = CallActionStream.stream.listen((action) {

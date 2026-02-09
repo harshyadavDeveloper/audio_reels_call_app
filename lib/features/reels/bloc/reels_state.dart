@@ -1,5 +1,4 @@
-import 'package:audio_call_task/features/reels/data/reels_audio.dart';
-
+import '../../reels/data/reel_audio_model.dart';
 abstract class ReelsState {}
 
 class ReelsLoading extends ReelsState {}
@@ -29,4 +28,12 @@ class ReelsLoaded extends ReelsState {
       showOverlayIcon: showOverlayIcon ?? this.showOverlayIcon,
     );
   }
+}
+
+class ReelsError extends ReelsState {
+  final String message;
+
+   ReelsError(this.message);
+
+  List<Object?> get props => [message];
 }

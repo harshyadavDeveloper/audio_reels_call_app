@@ -1,5 +1,4 @@
-import 'package:audio_call_task/features/reels/data/reels_audio.dart';
-
+import '../../reels/data/reel_audio_model.dart';
 abstract class ReelsEvent {}
 
 class LoadReels extends ReelsEvent {}
