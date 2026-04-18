@@ -25,6 +25,7 @@ dependencies:
   # App rename utility
   rename_app: ^1.6.5
   dio: ^5.4.0
+  smart_date_formatter: ^0.0.4
 
 
 dev_dependencies:
